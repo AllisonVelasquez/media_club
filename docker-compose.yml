@@ -1,0 +1,57 @@
+
+services:
+  # Servicio Backend (Laravel)
+  backend:
+    build:
+      context: ./backend
+    volumes:
+      - ./backend:/var/www
+    networks:
+      - media_club_network
+    depends_on:
+      - db
+    ports:
+      - "9000:9000"
+
+  # Servicio Frontend (React)
+  frontend:
+    build:
+      context: ./frontend
+    volumes:
+      - ./frontend:/app
+    networks:
+      - media_club_network
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  # Servicio Nginx
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - ./frontend/build:/usr/share/nginx/html
+    networks:
+      - media_club_network
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+
+  # Servicio MySQL
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: media_club_db
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    networks:
+      - media_club_network
+    ports:
+      - "3306:3306"
+
+networks:
+  media_club_network:
+    driver: bridge
